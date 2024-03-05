@@ -224,10 +224,18 @@ def AFD_simulation(afd,w):
     S = So
     
     if w!='ε':
-        for c in w:
+        i=0
+        while i<len(w):
+            c = w[i]
             if c=='ε':
+                i+=1
                 continue
-            S = afLib.move(S,c)
+            if c=='\\' and w[i+1]=='s':
+                S = afLib.move(S,' ')
+                i+=1
+            else:
+                S = afLib.move(S,c)
+            i+=1
     
     if S:
         s = S.pop()

@@ -10,7 +10,10 @@ def tokenizeRegex(regex):
         # Caracter de escape
         if char == '\\':
             if i + 1 < len(regex):
-                tokens.append(regex[i:i+2])
+                if regex[i+1]=="s":
+                    tokens.append(' ')
+                else:
+                    tokens.append(regex[i:i+2])
                 i += 2
             else:
                 tokens.append(char)
@@ -25,7 +28,21 @@ def tokenizeRegex(regex):
             first_char = char
             
             while i < len(regex) and regex[i] != ']':
-                clase_char += regex[i]
+                if regex[i] == '\\':
+                    if i + 1 < len(regex):
+                        if regex[i+1]=="s":
+                            clase_char+=' '
+                        elif regex[i+1]=="[":
+                            clase_char+="["
+                        elif regex[i+1]=="]":
+                            clase_char+="]"
+                        
+                        i += 1
+                    else:
+                        clase_char += regex[i]
+                else:
+                    clase_char += regex[i]
+                    
                 i += 1
             if i < len(regex):  # Asegurarse de incluir el ']' si no se ha llegado al final de la regex
                 clase_char += regex[i]
@@ -156,10 +173,56 @@ def formatRegEx(tokens):
                     tokens[j:index + 1] = ['(']+tokens[j:index] + tokens[j:index] + ['*'] +['(']
                 elif operator == '?':
                     tokens[j:index + 1] = ['('] + tokens[j:index] + ['|', empty_symbol, ')']
-                    
+    
     def expand_character_class(char_class):
-        start, end = char_class[2], char_class[3]
-        expanded = '|'.join(chr(c) for c in range(ord(start), ord(end) + 1))
+       characters = []
+       i=0
+       while i < len(char_class):
+           c = char_class[i]
+           
+           if c=="'":
+               if char_class[i+1]=="\\":
+                   characters.append(char_class[i+2])
+                   i+=1
+               else:
+                   characters.append(char_class[i+1])
+               i+=2
+           elif c=="-":
+               start = characters.pop()
+               end = char_class[i+2]
+               
+               for c in range(ord(start), ord(end) + 1):
+                   characters.append(chr(c))
+               i+=3
+           elif c=='"':
+               j=i+1
+               while j<len(char_class):
+                   if char_class[j]!='"':
+                       characters.append(char_class[j])
+                   else:
+                       break
+                   j+=1
+               i=j
+           i+=1
+       
+       expanded = ''.join(item for item in characters)
+       return expand_string('"'+expanded+'"')
+               
+
+        
+    def expand_string(string):
+        reserved = ['|','*','.','(',')']
+        expanded = []
+        
+        char_class = string[1:-1]
+        for c in char_class:
+            if c in reserved:
+                expanded.append('\\'+c)
+            else:
+                expanded.append(c)
+            expanded.append('|')
+        
+        expanded.pop()
         return ['('] + [char for char in expanded] + [')']
 
     # Manejar los casos de '+'
