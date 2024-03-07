@@ -30,10 +30,9 @@ def create_ast(postfix):
             if char=='ε':
                 new_node.nullable = True
             else:
-                if char[0]=='\\':
-                    if char[1]:
-                        char = char[1]
-                        new_node.value = char
+                if char[0]=='\\' and len(char)>1:
+                    char = char[1]
+                    new_node.value = char
                         
                 Node.pos_counter+=1
                 new_node.pos = Node.pos_counter

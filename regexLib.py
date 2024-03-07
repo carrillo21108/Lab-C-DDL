@@ -1,5 +1,4 @@
-﻿from ctypes import FormatError
-import string
+﻿import string
 
 def tokenizeRegex(regex):
     tokens = []
@@ -30,12 +29,15 @@ def tokenizeRegex(regex):
             while i < len(regex) and regex[i] != ']':
                 if regex[i] == '\\':
                     if i + 1 < len(regex):
-                        if regex[i+1]=="s":
+                        #Escape de caracteres importantes en las clases
+                        if regex[i+1]=='s':
                             clase_char+=' '
-                        elif regex[i+1]=="[":
-                            clase_char+="["
-                        elif regex[i+1]=="]":
-                            clase_char+="]"
+                        elif regex[i+1]=='[':
+                            clase_char+='['
+                        elif regex[i+1]==']':
+                            clase_char+=']'
+                        else:
+                            clase_char+='\\'+regex[i+1]
                         
                         i += 1
                     else:
@@ -49,6 +51,7 @@ def tokenizeRegex(regex):
                 tokens.append(clase_char)
                 i += 1
             else:
+                #Si no se encuentra la estructura de una clase, se agrega unicamente el caracter '['
                 tokens.append(first_char)
                 i=first_i
 
@@ -77,7 +80,10 @@ def regexAlphabet(postfix):
     while i<len(postfix):
         char = postfix[i]
         if char[0] == '\\':
-            alphabet.add(char[1])
+            if len(char)>1:
+                alphabet.add(char[1])
+            else:
+                alphabet.add(char[0])
         elif char not in reserved:
             alphabet.add(char)
             
@@ -174,6 +180,7 @@ def formatRegEx(tokens):
                 elif operator == '?':
                     tokens[j:index + 1] = ['('] + tokens[j:index] + ['|', empty_symbol, ')']
     
+    #Funcion para reconstruir todas las clases en un solo formato ["abc..."]
     def expand_character_class(char_class):
        characters = []
        i=0
@@ -209,7 +216,7 @@ def formatRegEx(tokens):
        return expand_string('"'+expanded+'"')
                
 
-        
+    #Funcion para reconstruir la clase en formato ["abc.."] en (a|b|c...)    
     def expand_string(string):
         reserved = ['|','*','.','(',')']
         expanded = []

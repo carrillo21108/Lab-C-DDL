@@ -1,4 +1,5 @@
-﻿from graphviz import Digraph
+﻿from tkinter import SEL
+from graphviz import Digraph
 from astLib import Node
 import afLib
 
@@ -20,6 +21,16 @@ class AFD:
         self.start = None
         self.accept = set()
         self.states = set()
+        self.simulationStates = set()
+        
+    def step_simulation(self,c,lookAhead):
+        if len(self.simulationStates)==0:
+            self.simulationStates.add(self.start)
+
+        self.simulationStates = afLib.move(self.simulationStates,c)
+            
+        return self.simulationStates
+        
         
 def ast_to_afdd(alphabet,ast_root):
     states = []
