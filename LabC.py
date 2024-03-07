@@ -3,11 +3,11 @@ from yalexLib import YalexRecognizer
 import afdLib
 import afLib
     
-file_path = 'slr-4.yal'
+file_path = 'slr-1.yal'
 
 comments = []
 definitions = {}
-rule = {}
+rule_tokens = {}
 
 def segmentRecognize(afd_pos,i,content):
     accept = (False,0,"")
@@ -33,7 +33,7 @@ def segmentRecognize(afd_pos,i,content):
         
 def definitionRecognize(content):
     # Inicializa la posición
-    print(content)
+    #print(content)
     definition = []
     first = 0
     while first<=len(content):
@@ -68,15 +68,15 @@ def definitionRecognize(content):
             break
                 
         first = longer[1]
-        print(longer[0])
+        #print(longer[0])
         #input("Presione [Enter] para continuar.")   
         
     definitions[definition[0]] = definition[1]
     
 def ruleRecognize(content):
     # Inicializa la posición
-    print(content)
-    definition = []
+    #print(content)
+    identifier = []
     first = 0
     while first<=len(content):
         #Longer sera utilizado para encontrar la primera aceptacion encontrada mas larga
@@ -88,32 +88,42 @@ def ruleRecognize(content):
             res = segmentRecognize(i,first,content)
     
             if res[0]:
-                print("ACEPTADO por " + str(i))
-                print(res[2])
+                # print("ACEPTADO por " + str(i))
+                # print(res[2])
                 if len(res[2])>len(longer[2]):
                     longer[0] = i
                     longer[1] = res[1]
                     longer[2] = res[2]
-            else:
-                print("NO ACEPTADO por " + str(i))
+            # else:
+            #     print("NO ACEPTADO por " + str(i))
         
-        # if longer[0]==3: #ws
-        #     pass
-        # elif longer[0]==4: #let
-        #     pass
-        # elif longer[0]==5 and len(definition)==0: #id
-        #     definition.append(longer[2])
-        # elif longer[0]==6: #eq
-        #     pass
-        # else: #resto de la definicion
-        #     definition.append(content[first:])
-        #     break
+        if longer[0]==7: #rule
+            pass
+        elif longer[0]==8: #tokens
+            pass
+        elif longer[0]==9: #char o string
+            identifier.append(longer[2])
+        elif longer[0]==10: #|
+            pass
+        elif longer[0]==11: #{return SOMETHING}
+            rule_tokens[identifier.pop()] = longer[2]
+        elif longer[0]==3: #ws
+            pass
+        elif longer[0]==5: #id
+            identifier.append(longer[2])
+        elif longer[0]==6: #eq
+            pass
+        elif longer[0]==0: #Comentario
+            comments.append(longer[2])
+        else: #resto de la definicion
+            break
                 
         first = longer[1]
-        print(longer[0])
-        input("Presione [Enter] para continuar.")   
+        #print(longer[0])
+        #input("Presione [Enter] para continuar.")
         
-    # definitions[definition[0]] = definition[1]
+    for item in identifier:
+        rule_tokens[item] = ""
 
 
 yalexRecognizer = YalexRecognizer()
@@ -162,5 +172,8 @@ while first<=len(yalexContent):
     first = longer[1]
     #input("Presione [Enter] para continuar.")
     
+print(comments)
+print('\n')
 print(definitions)
-
+print('\n')
+print(rule_tokens)
