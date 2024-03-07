@@ -15,6 +15,7 @@ class YalexRecognizer:
     parens = "\"()\""
     brackets = "\"\[\]\""
     curly_brackets = "\"{}\""
+    open_curly_bracket = "\"{\""
     close_curly_bracket = "\"}\""
     #Unicamente con espace entre ''
     quotes = "'\'''\"'"
@@ -26,12 +27,22 @@ class YalexRecognizer:
     allLetter = f"{letter}\"¡…Õ”⁄\"\"·ÈÌÛ˙\""
     _id = f"[{letter}]([{letter}]|[{digit}])*"
     
+    let = "let"
+    rule = "rule"
+    tokens = "tokens"
+    equal = "="
+    
+    char = f"[{quotes}][{letter}{digit}{especial_chars}{brackets}{quotes}{curly_brackets}{blank_space}{parens}{kleene}]+[{quotes}]"
+    union = "[\"|\"]"
+    rule_return = f"[{open_curly_bracket}]{ws}return{ws}[{letter}]+{ws}[{close_curly_bracket}]"
+
+    
     comment_regex = f"\(\*[{allLetter}{digit}{delim_regex}{especial_chars}{brackets}]*\*\)"
-    definition_regex = f"let{ws}{_id}{ws}={ws}[{letter}{digit}{especial_chars}{brackets}{quotes}{backslash}{blank_space}{parens}{kleene}]+"
-    rule_regex = f"rule{ws}tokens{ws}={ws}[{allLetter}{digit}{delim_regex}{especial_chars}{parens}{kleene}{brackets}{curly_brackets}{quotes}]+[{close_curly_bracket}]"
+    definition_regex = f"{let}{ws}{_id}{ws}{equal}{ws}[{letter}{digit}{especial_chars}{brackets}{quotes}{backslash}{blank_space}{parens}{kleene}]+"
+    rule_regex = f"{rule}{ws}{tokens}{ws}{equal}{ws}[{allLetter}{digit}{delim_regex}{especial_chars}{parens}{kleene}{brackets}{curly_brackets}{quotes}]+[{close_curly_bracket}]"
     
     def __init__(self):
-        regex = [YalexRecognizer.comment_regex,YalexRecognizer.definition_regex,YalexRecognizer.rule_regex,YalexRecognizer.ws]
+        regex = [YalexRecognizer.comment_regex,YalexRecognizer.definition_regex,YalexRecognizer.rule_regex,YalexRecognizer.ws,YalexRecognizer.let,YalexRecognizer._id,YalexRecognizer.equal,YalexRecognizer.rule,YalexRecognizer.tokens,YalexRecognizer.char,YalexRecognizer.union,YalexRecognizer.rule_return]
         self.afds = []
         for item in regex:
             #Construccion de postfix
