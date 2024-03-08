@@ -2,6 +2,8 @@
 from yalexLib import YalexRecognizer
 import afdLib
 import afLib
+import astLib
+import regexLib
     
 file_path = 'slr-4.yal'
 
@@ -250,9 +252,24 @@ i=0
 
 print(tokens_regex)
 print('\n')
+#Reemplazando las variables de las definiciones en el regex de tokens
 while i<len(tokens_regex):
     tokens_regex[i] = valueRecognize(tokens_regex[i])
     i+=1
 
 print(tokens_regex)
-    
+print('\n')
+
+lexer = '|'.join(tokens_regex)
+lexer = '('+lexer+')'
+
+print(lexer)
+print('\n')
+#Construccion de postfix
+postfix = regexLib.shunting_yard(lexer)
+            
+#Construccion AST
+ast_root = astLib.create_ast(postfix)
+ast_graph = astLib.plot_tree(ast_root)
+nombre_archivo_pdf = 'AST'
+ast_graph.view(filename=nombre_archivo_pdf,cleanup=True)

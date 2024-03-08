@@ -2,6 +2,7 @@
 
 def tokenizeRegex(regex):
     tokens = []
+    reserved = ['|','*','.','(',')','+','?']
     i = 0
     while i < len(regex):
         char = regex[i]
@@ -11,12 +12,67 @@ def tokenizeRegex(regex):
             if i + 1 < len(regex):
                 if regex[i+1]=="s":
                     tokens.append(' ')
+                elif regex[i+1]=="t":
+                    tokens.append('\t')
+                elif regex[i+1]=="n":
+                    tokens.append('\n')
                 else:
                     tokens.append(regex[i:i+2])
                 i += 2
             else:
                 tokens.append(char)
                 i += 1
+                
+        elif char=="'":
+            if i + 2 < len(regex) and regex[i+2]=="'":
+                res = regex[i+1] if regex[i+1] not in reserved else '\\'+regex[i+1]
+                tokens.append(res)
+                i += 3 if i+3<len(regex) else len(regex)
+            else:
+                tokens.append(char)
+                i += 1
+                
+        elif char == '"':
+            string = char
+            i += 1
+            
+            first_i=i
+            first_char = char
+            
+            while i < len(regex) and regex[i] != '"':
+                if regex[i] == '\\':
+                    if i + 1 < len(regex):
+                        #Escape de caracteres importantes en las clases
+                        if regex[i+1]=='s':
+                            string+=' '
+                        elif regex[i+1]=='"':
+                            string+='"'
+                        else:
+                            string+='\\'+regex[i+1]
+                        
+                        i += 1
+                    else:
+                        string += regex[i]
+                else:
+                    string += regex[i]
+                    
+                i += 1
+            if i < len(regex):  # Asegurarse de incluir el '"' si no se ha llegado al final de la regex
+                string += regex[i]
+                string = string[1:-1]
+                j = 0
+                while j<len(string):
+                    if string[j]=='\\':
+                        tokens.append('\\'+string[j+1])
+                        j+=1
+                    else:
+                        tokens.append(string[j])
+                    j += 1
+                i+=1
+            else:
+                #Si no se encuentra la estructura de un string, se agrega unicamente el caracter '"'
+                tokens.append(first_char)
+                i=first_i
                 
         # Inicio de clase de caracteres
         elif char == '[':
@@ -218,7 +274,7 @@ def formatRegEx(tokens):
 
     #Funcion para reconstruir la clase en formato ["abc.."] en (a|b|c...)    
     def expand_string(string):
-        reserved = ['|','*','.','(',')']
+        reserved = ['|','*','.','(',')','+','?']
         expanded = []
         
         char_class = string[1:-1]
