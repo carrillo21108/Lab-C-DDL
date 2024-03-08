@@ -88,6 +88,10 @@ def tokenizeRegex(regex):
                         #Escape de caracteres importantes en las clases
                         if regex[i+1]=='s':
                             clase_char+=' '
+                        elif regex[i+1]=='t':
+                            clase_char+='\t'
+                        elif regex[i+1]=='n':
+                            clase_char+='\n'
                         elif regex[i+1]=='[':
                             clase_char+='['
                         elif regex[i+1]==']':
@@ -110,6 +114,7 @@ def tokenizeRegex(regex):
                 #Si no se encuentra la estructura de una clase, se agrega unicamente el caracter '['
                 tokens.append(first_char)
                 i=first_i
+                
 
         # Operadores
         elif char in {'*', '+', '?', '|'}:

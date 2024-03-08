@@ -5,7 +5,7 @@ import afLib
 import astLib
 import regexLib
     
-file_path = 'slr-4.yal'
+file_path = 'slr-2.yal'
 
 comments = []
 definitions = {}
@@ -259,6 +259,14 @@ while i<len(tokens_regex):
 
 print(tokens_regex)
 print('\n')
+
+k=0
+for item in tokens_regex:
+    subafd = afdLib.createAFD(item)
+    subafd_graph = afLib.plot_af(subafd.start)
+    nombre_archivo_pdf = 'AFD '+str(k)
+    subafd_graph.view(filename=nombre_archivo_pdf,cleanup=True)
+    k+=1
 
 lexer = '|'.join(tokens_regex)
 lexer = '('+lexer+')'
