@@ -3,11 +3,14 @@ from yalexLib import YalexRecognizer
 import afdLib
 import afLib
     
-file_path = 'slr-1.yal'
+file_path = 'slr-4.yal'
 
 comments = []
 definitions = {}
 rule_tokens = {}
+
+definitions_id = []
+tokens_regex = []
 
 def segmentRecognize(afd_pos,i,content):
     accept = (False,0,"")
@@ -125,7 +128,57 @@ def ruleRecognize(content):
     for item in identifier:
         rule_tokens[item] = ""
 
+def valueRecognize(content):
+    # Inicializa la posición
+    # print(content)
+    new_content = ""
+    first = 0
+    change = True
+    while change:
+        while first<=len(content):
+            #Longer sera utilizado para encontrar la primera aceptacion encontrada mas larga
+            longer = [-1,len(content)+1,""] #Pos del AFD, Ultima posicion de lookAhead, contenido aceptado
+            afdPos = new_afdPos
 
+            #Revisar entre los AFDs definidos en el yalexRecognizer
+            for i in afdPos:
+                res = segmentRecognize(i,first,content)
+    
+                if res[0]:
+                    # print("ACEPTADO por " + str(i))
+                    # print(res[2])
+                    if len(res[2])>len(longer[2]):
+                        longer[0] = i
+                        longer[1] = res[1]
+                        longer[2] = res[2]
+                # else:
+                #     print("NO ACEPTADO por " + str(i))
+        
+            if longer[0]==12:
+                new_content+=longer[2]
+                first = longer[1]
+                
+            elif longer[0]!=-1:
+                new_content+=definitions[longer[2]]
+                first = longer[1]
+            else:
+                new_content+=content[first] if first<len(content) else ""
+                first+=1
+            
+            # print(longer[0])
+            # input("Presione [Enter] para continuar.")
+        
+        if content!=new_content:
+            first=0
+            content=new_content
+            new_content=""
+            # print("CONTENIDO: "+content)
+        else:
+            change = False
+            # print("CONTENIDO: "+content)
+            
+    return new_content
+        
 yalexRecognizer = YalexRecognizer()
 # afd_graph = afLib.plot_af(yalexRecognizer.afds[0].start)
 # nombre_archivo_pdf = 'AFD'
@@ -177,3 +230,29 @@ print('\n')
 print(definitions)
 print('\n')
 print(rule_tokens)
+print('\n')
+
+for key in rule_tokens:
+    tokens_regex.append(key)
+
+for key in definitions:
+    definitions_id.append(key)
+    
+
+new_afdPos = [12]
+i=12
+for item in definitions_id:
+    yalexRecognizer.afds.append(afdLib.createAFD(item))
+    i+=1
+    new_afdPos.append(i)
+
+i=0
+
+print(tokens_regex)
+print('\n')
+while i<len(tokens_regex):
+    tokens_regex[i] = valueRecognize(tokens_regex[i])
+    i+=1
+
+print(tokens_regex)
+    

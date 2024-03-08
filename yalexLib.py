@@ -1,9 +1,5 @@
 # -*- coding: iso-8859-1 -*-
-import regexLib
-import astLib
 import afdLib
-import afnLib
-import afLib
 
 class YalexRecognizer:
     #Son tomadas como espacio, tabulacion y salto de linea literal
@@ -32,7 +28,9 @@ class YalexRecognizer:
     tokens = "tokens"
     equal = "="
     
-    char = f"[{quotes}][{letter}{digit}{especial_chars}{brackets}{quotes}{curly_brackets}{blank_space}{parens}{kleene}]+[{quotes}]"
+    string = f"[{quotes}][{letter}{digit}{especial_chars}{brackets}{quotes}{curly_brackets}{blank_space}{parens}{kleene}]+[{quotes}]"
+    char = f"[{quotes}][{letter}{digit}]+[{quotes}]"
+    
     union = "[\"|\"]"
     rule_return = f"[{open_curly_bracket}]{ws}return{ws}[{letter}]+{ws}[{close_curly_bracket}]"
 
@@ -42,29 +40,10 @@ class YalexRecognizer:
     rule_regex = f"{rule}{ws}{tokens}{ws}{equal}{ws}[{allLetter}{digit}{delim_regex}{especial_chars}{parens}{kleene}{brackets}{curly_brackets}{quotes}]+[{close_curly_bracket}]"
     
     def __init__(self):
-        regex = [YalexRecognizer.comment_regex,YalexRecognizer.definition_regex,YalexRecognizer.rule_regex,YalexRecognizer.ws,YalexRecognizer.let,YalexRecognizer._id,YalexRecognizer.equal,YalexRecognizer.rule,YalexRecognizer.tokens,YalexRecognizer.char,YalexRecognizer.union,YalexRecognizer.rule_return]
+        regex = [YalexRecognizer.comment_regex,YalexRecognizer.definition_regex,YalexRecognizer.rule_regex,YalexRecognizer.ws,YalexRecognizer.let,YalexRecognizer._id,YalexRecognizer.equal,YalexRecognizer.rule,YalexRecognizer.tokens,YalexRecognizer.string,YalexRecognizer.union,YalexRecognizer.rule_return,YalexRecognizer.char]
         self.afds = []
         for item in regex:
-            #Construccion de postfix
-            postfix = regexLib.shunting_yard(item)
-            postfix.append("#")
-            postfix.append(".")
-            
-            #Construccion AST
-            ast_root = astLib.create_ast(postfix)
-            
-            #Construccion AFD
-            afd = afdLib.ast_to_afdd(regexLib.regexAlphabet(postfix),ast_root)
-            afd.states = afdLib.AFDState.states
-            afdLib.AFDState.state_counter = 'A'
-            afdLib.AFDState.states = set()
-            
-            #Minimizacion AFD
-            afdmin = afdLib.afd_to_afdmin(regexLib.regexAlphabet(postfix),afd)
-            afdmin.states = afdLib.AFDState.states
-            self.afds.append(afdmin)
-            afdLib.AFDState.state_counter = 'A'
-            afdLib.AFDState.states = set()
+            self.afds.append(afdLib.createAFD(item))
 
     def step_simulate_AFD(self,afd_pos,c,lookAhead):
         afd = self.afds[afd_pos]
