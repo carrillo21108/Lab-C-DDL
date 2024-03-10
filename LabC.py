@@ -2,65 +2,80 @@
 from yalexLib import YalexRecognizer
 import afdLib
 import afLib
+import astLib
+import regexLib
     
 file_path = 'slr-4.yal'
 
-comments = {}
-definitions = {}
-
-def segmentRecognize(afd_pos,i):
-    accept = (False,0,"")
-    # Bucle hasta que se alcance el final del contenido
-    while i <= len(content):  # Asegura que haya espacio para lookAhead
-        char = content[i] if i<len(content) else ""  # Carácter actual
-        lookAhead = content[i + 1] if i<len(content)-1 else ""  # Carácter siguiente
+definitions_id = []
+tokens_regex = []
         
-        # Procesa el carácter aquí
-        res =yalexRecognizer.step_simulate_AFD(afd_pos, char, lookAhead)
-        if res == 0:
-            last = i+1
-            accept = (True,last,content[first:last]) #Estado de aceptacion, ultima posicion de lookAhead, contenido aceptado
-        
-        elif res == 2:
-            if accept[0]:
-                return accept
-            else:
-                return (False,0,"")
-
-        i += 1  # Incrementa la posición para el próximo carácter
-
 yalexRecognizer = YalexRecognizer()
-# afd_graph = afLib.plot_af(yalexRecognizer.afds[0].start)
-# nombre_archivo_pdf = 'AFD'
-# afd_graph.view(filename=nombre_archivo_pdf,cleanup=True)
 
 #Lectura del documento yalex
 with open(file_path, 'r', encoding='utf-8') as file:
-    content = file.read()  # Leer todo el contenido del archivo
+    yalexContent = file.read()  # Leer todo el contenido del archivo
+    
+if yalexRecognizer.yalexRecognize(yalexContent):
+    print(yalexRecognizer.get_comments())
+    print('\n')
+    print(yalexRecognizer.get_definitions())
+    print('\n')
+    print(yalexRecognizer.get_rule_tokens())
+    print('\n')
     
 
-# Inicializa la posición
-first = 0
-while first<=len(content):
-    #Longer sera utilizado para encontrar la primera aceptacion encontrada mas larga
-    longer = [-1,len(content)+1,""] #Pos del AFD, Ultima posicion de lookAhead, contenido aceptado
+    for key in yalexRecognizer.get_rule_tokens():
+        tokens_regex.append(key)
 
-    #Revisar entre los AFDs definidos en el yalexRecognizer
-    for i in range(0,4):
-        res = segmentRecognize(i,first)
+    for key in yalexRecognizer.get_definitions():
+        definitions_id.append(key)
     
-        if res[0]:
-            print("ACEPTADO por " + str(i))
-            print(res[2])
-            if len(res[2])>len(longer[2]):
-                longer[0] = i
-                longer[1] = res[1]
-                longer[2] = res[2]
-        else:
-            print("NO ACEPTADO por " + str(i))
+
+    new_afdPos = [12] #Reconociendo chars y strings
+    i=12
+    for item in definitions_id:
+        yalexRecognizer.afds.append(afdLib.createAFD(item))
+        i+=1
+        new_afdPos.append(i)
+
+    i=0
+
+    print(tokens_regex)
+    print('\n')
+    #Reemplazando las variables de las definiciones en el regex de tokens
+    while i<len(tokens_regex):
+        tokens_regex[i] = yalexRecognizer.valueRecognize(new_afdPos,tokens_regex[i])
+        i+=1
+
+    print(tokens_regex)
+    print('\n')
+
+    k=1
+    for item in tokens_regex:
+        # subafd = afdLib.createAFD(item)
+        # subafd_graph = afLib.plot_af(subafd.start)
+        # nombre_archivo_pdf = 'AFD '+str(k)
+        # subafd_graph.view(filename=nombre_archivo_pdf,cleanup=True)
+        postfix = regexLib.shunting_yard(item)
             
-    first = longer[1]
-    input("Presione [Enter] para continuar.")    
+        #Construccion AST
+        ast_root = astLib.create_ast(postfix)
+        ast_graph = astLib.plot_tree(ast_root)
+        nombre_archivo_pdf = 'Subarbol de Expresion '+str(k)
+        ast_graph.view(filename=nombre_archivo_pdf,cleanup=True)
+        k+=1
 
+    lexer = '|'.join(tokens_regex)
+    lexer = '('+lexer+')'
 
-
+    print(lexer)
+    print('\n')
+    #Construccion de postfix
+    postfix = regexLib.shunting_yard(lexer)
+            
+    #Construccion AST
+    ast_root = astLib.create_ast(postfix)
+    ast_graph = astLib.plot_tree(ast_root)
+    nombre_archivo_pdf = 'Arbol de expresion'
+    ast_graph.view(filename=nombre_archivo_pdf,cleanup=True)

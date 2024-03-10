@@ -1,7 +1,8 @@
-﻿from tkinter import SEL
-from graphviz import Digraph
-from astLib import Node
+﻿from astLib import Node
 import afLib
+import regexLib
+import astLib
+import afdLib
 
 class AFDState:
     state_counter = 'A'
@@ -257,3 +258,26 @@ def AFD_simulation(afd,w):
         return "sí"
     else:
         return "no"
+    
+def createAFD(item):
+    #Construccion de postfix
+    postfix = regexLib.shunting_yard(item)
+    postfix.append("#")
+    postfix.append(".")
+            
+    #Construccion AST
+    ast_root = astLib.create_ast(postfix)
+            
+    #Construccion AFD
+    afd = ast_to_afdd(regexLib.regexAlphabet(postfix),ast_root)
+    afd.states = AFDState.states
+    AFDState.state_counter = 'A'
+    AFDState.states = set()
+            
+    #Minimizacion AFD
+    afdmin = afd_to_afdmin(regexLib.regexAlphabet(postfix),afd)
+    afdmin.states = AFDState.states
+    AFDState.state_counter = 'A'
+    AFDState.states = set()
+    
+    return afdmin
