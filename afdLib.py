@@ -1,6 +1,4 @@
-﻿from tkinter import SEL
-from graphviz import Digraph
-from astLib import Node
+﻿from astLib import Node
 import afLib
 import regexLib
 import astLib
@@ -271,15 +269,15 @@ def createAFD(item):
     ast_root = astLib.create_ast(postfix)
             
     #Construccion AFD
-    afd = afdLib.ast_to_afdd(regexLib.regexAlphabet(postfix),ast_root)
-    afd.states = afdLib.AFDState.states
-    afdLib.AFDState.state_counter = 'A'
-    afdLib.AFDState.states = set()
+    afd = ast_to_afdd(regexLib.regexAlphabet(postfix),ast_root)
+    afd.states = AFDState.states
+    AFDState.state_counter = 'A'
+    AFDState.states = set()
             
     #Minimizacion AFD
-    afdmin = afdLib.afd_to_afdmin(regexLib.regexAlphabet(postfix),afd)
-    afdmin.states = afdLib.AFDState.states
-    afdLib.AFDState.state_counter = 'A'
-    afdLib.AFDState.states = set()
+    afdmin = afd_to_afdmin(regexLib.regexAlphabet(postfix),afd)
+    afdmin.states = AFDState.states
+    AFDState.state_counter = 'A'
+    AFDState.states = set()
     
     return afdmin
